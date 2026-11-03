@@ -1,0 +1,33 @@
+# Tajné klíče a proměnné prostředí
+.env
+.env.*
+!.env.example
+
+# Virtuální prostředí
+venv/
+.venv/
+
+# Osobní poznámky
+notes/
+
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Lokální vektorová databáze a nahraná data
+chroma_db/
+data/uploads/
+
+# Editory a systém
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+#db
+chroma_db/
+
+docassist.egg-info/
+python/
