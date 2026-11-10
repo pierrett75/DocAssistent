@@ -17,9 +17,13 @@ dependencies = [
     "numpy",
     "pypdf",
     "chromadb",
+    "pydantic",
+    "langchain-core",
+    "langchain-openai",
+    "langgraph",
     "fastapi",
     "uvicorn",
-    "python-multipart"
+    "python-multipart",
 ]
 
 [project.optional-dependencies]
