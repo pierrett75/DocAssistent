@@ -1,7 +1,6 @@
 import pytest
 
 from docassist.ingest.chunking import chunk_pages, chunk_text
-from experiments import chunks
 
 
 def test_chunk_text_priklad_z_docstringu():
