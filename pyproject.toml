@@ -17,10 +17,22 @@ dependencies = [
     "numpy",
     "pypdf",
     "chromadb",
+    "pydantic",
+    "langchain-core",
+    "langchain-openai",
+    "langgraph",
     "fastapi",
     "uvicorn",
-    "python-multipart"
+    "python-multipart",
 ]
+
+[project.optional-dependencies]
+dev = ["pytest", "httpx"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+       
