@@ -1,21 +1,13 @@
 def chunk_text(text: str, size: int, overlap: int) -> list[str]:
-    """Rozseká text na kousky délky `size`, sousední kousky se překrývají o `overlap` znaků.
-
-    Příklad: text = "ABCDEFGHIJ", size = 4, overlap = 1
-        krok (step) = size - overlap = 3
-        chunk 1: text[0:4]  = "ABCD"
-        chunk 2: text[3:7]  = "DEFG"     ← "D" se opakuje (overlap)
-        chunk 3: text[6:10] = "GHIJ"     ← "G" se opakuje
-        chunk 4: text[9:13] = "J"        ← zbytek, který už je celý v chunku 3
-    Ten poslední drobek je běžný vedlejší efekt. Až to budeš mít hotové,
-    zkus vymyslet, jak ho nevytvářet (bonus, není povinné).
-    """
-    
+    """Rozseká text na kousky (chunky) o dané velikosti a překryvu."""
     step = size - overlap
     if step <= 0:
-        raise ValueError("Overlap musí být menší než size, jinak by krok byl 0 nebo záporný.")
+            raise ValueError("Overlap musí být menší než size, jinak by krok byl 0 nebo záporný.")
     
-    return [text[i:i + size] for i in range(0, len(text)-overlap, step)]
+    end_range = max(len(text) - overlap, 1)
+   
+    return [text[i:i + size] for i in range(0, end_range, step)]
+    
 
 
 def chunk_pages(pages: list[dict], size: int, overlap: int) -> list[dict]:
