@@ -1,23 +1,3 @@
-"""
-Týden 2, den 4 (den 11): Chain vs. agent + nástroj pro shrnutí
-Cvičení: postavíš stejného asistenta jako AGENTA v LangGraph se 3 nástroji
-(vyhledání, extrakce, shrnutí) a porovnáš ho s routerem ze dne 10.
-
-Tři přístupy, které teď znáš:
-    chain  (den 6):  retrieve → generate            pevná cesta, vždy stejná
-    router (den 10): router → 1 nástroj → generate  LLM vybere JEDNU cestu z nakreslených
-    agent  (dnes):   agent ⇄ tools → konec          LLM volá nástroje v cyklu, kolik chce
-
-Graf agenta:
-    START ─> agent ──(chce nástroj?)──> tools ─┐
-               ▲                               │
-               └───────────────────────────────┘
-             agent ──(nechce)──> END
-
-Instalace:  pip install langchain-openai   (a přidej do pyproject.toml)
-Kam:        experiments/den11_agent.py
-Spuštění:   python experiments/den11_agent.py
-"""
 
 import json
 import time

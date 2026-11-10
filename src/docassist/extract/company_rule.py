@@ -4,8 +4,6 @@ import math
 
 from docassist.config import CHAT_MODEL
 
-last_tokens = 0
-
 client = OpenAI()
 
 
@@ -54,8 +52,6 @@ def extract_policy(document_text: str) -> VacationPolicy:
     if message.parsed is None:
         raise ValueError(message.refusal)
 
-    global last_tokens
-    last_tokens = completion.usage.total_tokens
     return message.parsed
 
 

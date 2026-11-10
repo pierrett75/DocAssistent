@@ -27,3 +27,14 @@ CHAT_MODEL = "gpt-4o-mini"
 # Retrieval a RAG (dny 5 a 6)
 TOP_K = 8
 MIN_SIMILARITY = 0.5
+
+PDF_PATH = DATA_DIR / "smernice_dovolena.pdf"
+
+# kolik tokenů historie posílám modelu
+MAX_HISTORY_TOKENS = 4000   
+
+CACHE_DIR = DATA_DIR / "cache"
+
+RECURSION_LIMIT = 10
+
+MAX_UPLOAD_MB = 10

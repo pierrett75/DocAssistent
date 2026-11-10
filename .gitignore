@@ -31,3 +31,5 @@ chroma_db/
 
 docassist.egg-info/
 python/
+
+data/cache/

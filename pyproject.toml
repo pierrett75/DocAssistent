@@ -17,6 +17,9 @@ dependencies = [
     "numpy",
     "pypdf",
     "chromadb",
+    "fastapi",
+    "uvicorn",
+    "python-multipart"
 ]
 
 [tool.setuptools.packages.find]
