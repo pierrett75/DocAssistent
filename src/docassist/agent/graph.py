@@ -16,6 +16,15 @@ llm_free = llm.bind_tools(TOOLS)                                # smí odpověd�
 llm_must_use_tool = llm.bind_tools(
     TOOLS, tool_choice={"type": "function", "function": {"name": "search_documents"}}
 )
+llm_no_tools = llm.bind_tools(TOOLS, tool_choice="none")   # nástroje zná, ale nesmí je volat
+
+# Max. počet kol "agent → nástroj" k jedné otázce. Kroky grafu: router 1 + 3 × 2 + odpověď 1 = 8 < RECURSION_LIMIT 10.
+MAX_TOOL_ROUNDS = 3
+FINAL_ANSWER_PROMPT = (
+    "Nástroje už volat nemůžeš. Odpověz teď na PŮVODNÍ otázku uživatele jen podle výsledků nástrojů výše. "
+    "Nepiš žádnou novou otázku ani dotaz. Když ve výsledcích odpověď není, napiš přesně: "
+    "\"Odpověď v dokumentech není.\""
+)
 
 CHITCHAT_ANSWER = ("Ahoj, jsem DocAssist. Odpovídám na otázky o firemních směrnicích, "
                    "třeba o dovolené nebo sick days, a uvádím zdroje.")
@@ -59,14 +68,25 @@ def agent_node(state: AgentState) -> dict:
         max_tokens=MAX_HISTORY_TOKENS,
         start_on="human",
     )
-  
-    if isinstance(state["messages"][-1], HumanMessage):
-        response = llm_must_use_tool.invoke([SystemMessage(SYSTEM_PROMPT)] + history)
+
+    # Kolikrát už agent k AKTUÁLNÍ otázce volal nástroje (od poslední HumanMessage).
+    messages = state["messages"]
+    last_human = max(i for i, m in enumerate(messages) if isinstance(m, HumanMessage))
+    tool_rounds = sum(1 for m in messages[last_human:] if isinstance(m, AIMessage) and m.tool_calls)
+
+    if isinstance(messages[-1], HumanMessage):
+        llm_to_use = llm_must_use_tool          # první krok: vždy hledat
+    elif tool_rounds >= MAX_TOOL_ROUNDS:
+        llm_to_use = llm_no_tools               # pojistka v kódu: dost hledání, odpověz z toho, co máš
     else:
-        response = llm_free.invoke([SystemMessage(SYSTEM_PROMPT)] + history)
+        llm_to_use = llm_free
+
+    prompt = [SystemMessage(SYSTEM_PROMPT)] + history
+    if llm_to_use is llm_no_tools:
+        # Bez téhle věty model občas napíše jako "odpověď" dotaz, který chtěl poslat do nástroje.
+        prompt.append(SystemMessage(FINAL_ANSWER_PROMPT))
+    response = llm_to_use.invoke(prompt)
     return {"messages": [response]}
-
-
 
 
 def build_agent(checkpointer=None):

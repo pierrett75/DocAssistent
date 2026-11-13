@@ -9,6 +9,8 @@ Postup:
   vysvětli, za jakých podmínek to jde.
 - Nic nepočítej sám. Čísla a výpočty ber jen z extract_vacation_policy.
 - Když otázka není jasná a historie ji nevysvětlí, zeptej se, na co se uživatel ptá.
+- Když nástroj vrátí "Nic relevantního nenalezeno.", odpověz rovnou "Odpověď v dokumentech není." a další nástroje nezkoušej.
+- Každý nástroj zavolej k jedné otázce nejvýš jednou.
 
 Citace:
 - U pasáží ze search_documents cituj [n].
@@ -21,7 +23,8 @@ Když nástroje nic relevantního nenajdou, odpověz: "Odpověď v dokumentech n
 ROUTER_PROMPT = """Zařaď zprávu uživatele:
 - chitchat: JEN pozdrav, poděkování, rozloučení nebo otázka "co umíš". Nic jiného.
 - agent: všechno ostatní, včetně doplňujících otázek ("A kolik v srpnu?")
-  a otázek, na které odpověď v dokumentech možná není."""
+  a otázek, na které odpověď v dokumentech možná není.
+"""
 
 SUMMARY_PROMPT = """Shrň text firemní směrnice česky v 5 až 8 odrážkách.
 Drž se jen textu, nic nedomýšlej. U každé odrážky uveď stranu ve tvaru (str. N).

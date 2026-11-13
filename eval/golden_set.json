@@ -1,0 +1,162 @@
+[
+  {
+    "id": "q01",
+    "category": "fakt",
+    "question": "Kolik mám sick days za rok?",
+    "reference": "3 dny sick days v kalendářním roce, po uplynutí zkušební doby. Při nástupu po 1. červenci 1,5 dne.",
+    "expected_tool": "search_documents",
+    "page": 5
+  },
+  {
+    "id": "q02",
+    "category": "výpočet",
+    "question": "Kolik pracovních dní dovolené mám navíc nad zákonné minimum?",
+    "reference": "5 pracovních dní (celkem 5 týdnů dovolené, zákonné minimum 4 týdny).",
+    "expected_tool": "extract_vacation_policy",
+    "page": 2
+  },
+  {
+    "id": "q03",
+    "category": "podmínka",
+    "question": "Můžu si vzít sick day v pátek těsně před dovolenou?",
+    "reference": "Sick day je určený jen ze zdravotních důvodů. Pokud je důvod zdravotní, jde to; jako prodloužení dovolené bez zdravotního důvodu ne.",
+    "expected_tool": "search_documents",
+    "page": 5
+  },
+  {
+    "id": "q04",
+    "category": "mimo_dokument",
+    "question": "Jaké je heslo na firemní wifi?",
+    "reference": "Odpověď v dokumentech není.",
+    "expected_tool": "search_documents",
+    "page": null
+  },
+  {
+    "id": "q05",
+    "category": "mimo_dokument",
+    "question": "Jakou hodnotu má stravenka?",
+    "reference": "Odpověď v dokumentech není (směrnice hodnotu stravenky neuvádí).",
+    "expected_tool": "search_documents",
+    "page": null
+  },
+  {
+    "id": "q06",
+    "category": "parafráze",
+    "question": "Kolik dní volna můžu čerpat, když mi není dobře, ale nechci k doktorovi?",
+    "reference": "3 dny sick days ročně (1,5 dne při nástupu po 1. červenci), za podmínek ze směrnice.",
+    "expected_tool": "search_documents",
+    "page": 5
+  },
+  {
+    "id": "q07",
+    "category": "fakt",
+    "question": "Do jakého data musí vedoucí oddělení sestavit roční rozvrh čerpání dovolených?",
+    "reference": "Do 31. března příslušného kalendářního roku ve spolupráci s personálním oddělením.",
+    "expected_tool": "search_documents",
+    "page": 7
+  },
+  {
+    "id": "q08",
+    "category": "fakt",
+    "question": "Do kolika hodin ráno musím nejpozději nahlásit nadřízenému, že si beru sick day?",
+    "reference": "Bez zbytečného odkladu, nejpozději do 8:00 hodin ráno příslušného pracovního dne (respektive nejpozději 30 minut před začátkem plánované směny).",
+    "expected_tool": "search_documents",
+    "page": 5
+  },
+  {
+    "id": "q09",
+    "category": "fakt",
+    "question": "Kolik žádostí o informace podle zákona č. 106/1999 Sb. obdržel Úřad vlády ČR v roce 2025 a kolik vydal rozhodnutí o odmítnutí?",
+    "reference": "V roce 2025 bylo podáno 272 žádostí o informace a vydáno 90 rozhodnutí o odmítnutí.",
+    "expected_tool": "search_documents",
+    "page": 1
+  },
+  {
+    "id": "q10",
+    "category": "fakt",
+    "question": "Jaká byla celková částka výdajů, kterou musel Úřad vlády v roce 2025 zaplatit jako náhradu nákladů soudních řízení podle zákona o informacích?",
+    "reference": "Celkem 18 342 Kč za náhradu nákladů soudních řízení.",
+    "expected_tool": "search_documents",
+    "page": 4
+  },
+  {
+    "id": "q11",
+    "category": "fakt",
+    "question": "Kolik odvolání (rozkladů) proti rozhodnutí a kolik stížností podle § 16a bylo podáno u Úřadu vlády v roce 2025?",
+    "reference": "Bylo podáno 17 odvolání (rozkladů) proti rozhodnutí a 10 stížností podle § 16a.",
+    "expected_tool": "search_documents",
+    "page": 1
+  },
+  {
+    "id": "q12",
+    "category": "podmínka",
+    "question": "Můžu si převést nevyčerpaný 5. týden dovolené do dalšího roku z osobních důvodů, a pokud ano, za jakých podmínek?",
+    "reference": "Ano, u dovolené nad rámec zákona (5. týden) lze požádat o převedení z osobních důvodů písemnou žádostí v HR portálu do 31. října. Schvaluje ji personální ředitel a převedené hodiny musí být vyčerpány do 30. června následujícího roku.",
+    "expected_tool": "search_documents",
+    "page": 4
+  },
+  {
+    "id": "q13",
+    "category": "podmínka",
+    "question": "Když mi zdravotní indispozice trvá už 3 dny v kuse, můžu na všechny 3 dny čerpat sick days?",
+    "reference": "Ne, souvisle v jednom kuse lze vyčerpat maximálně 2 po sobě jdoucí pracovní dny sick days. Při indispozici trvající 3 dny a déle musí zaměstnanec navštívit lékaře a nechat si vystavit eNeschopenku.",
+    "expected_tool": "search_documents",
+    "page": 5
+  },
+  {
+    "id": "q14",
+    "category": "podmínka",
+    "question": "Co se stane s mou dovolenou, pokud během ní onemocním a lékař mi vystaví neschopenku?",
+    "reference": "Čerpání dovolené se okamžikem vzniku dočasné pracovní neschopnosti přerušuje. Zaměstnanec to musí neprodleně oznámit zaměstnavateli a doložit neschopenkou; nevyčerpaná část dovolené zůstává zachována v HR portálu.",
+    "expected_tool": "search_documents",
+    "page": 6
+  },
+  {
+    "id": "q15",
+    "category": "výpočet",
+    "question": "Dej mi přehled čísel o dovolené a spočítej, kolik pracovních dní dovolené za rok dostávám nad rámec zákona.",
+    "reference": "Celková výměra je 5 týdnů dovolené (zákonná výměra 4 týdny, nadstandardní benefit 1 týden = 5 pracovních dnů navíc nad zákonné minimum) a 3 dny sick days za rok.",
+    "expected_tool": "extract_vacation_policy",
+    "page": 2
+  },
+  {
+    "id": "q16",
+    "category": "mimo_dokument",
+    "question": "Kolik dní placeného volna mám nárok čerpat na vlastní svatbu?",
+    "reference": "Odpověď v dokumentech není.",
+    "expected_tool": "search_documents",
+    "page": null
+  },
+  {
+    "id": "q17",
+    "category": "mimo_dokument",
+    "question": "Kolik dní home office měsíčně si můžu vzít a kdo ho schvaluje?",
+    "reference": "Odpověď v dokumentech není.",
+    "expected_tool": "search_documents",
+    "page": null
+  },
+  {
+    "id": "q18",
+    "category": "parafráze",
+    "question": "Když dám výpověď a v práci končím, dostanu peníze za nevybrané dny dovolené a zbývající sick days?",
+    "reference": "Náhrada mzdy za nevyčerpané hodiny dovolené může být vyplacena výhradně při skončení pracovního poměru (nárok na 5. týden se poměrně krátí). Nevyčerpané sick days však finančně proplatit nelze ani při skončení pracovního poměru.",
+    "expected_tool": "search_documents",
+    "page": 4
+  },
+  {
+    "id": "q19",
+    "category": "úskalí",
+    "question": "Pracuji na poloviční úvazek (20 hodin týdně). Kolik hodin dovolené celkem za rok mám a kolik hodin z toho je benefit nad rámec zákona?",
+    "reference": "Při polovičním úvazku (20 hodin týdně / 50 %) činí celkový roční nárok 100 hodin dovolené, z toho zákonná výměra je 80 hodin (4 týdny) a benefit nad rámec zákona činí 20 hodin (1 týden).",
+    "expected_tool": "search_documents",
+    "page": 2
+  },
+  {
+    "id": "q20",
+    "category": "úskalí",
+    "question": "Kolik dní předem musím požádat o dovolenou na 5 dnů a platí nárok na 5. týden dovolené a sick days i pro brigádníky na DPP?",
+    "reference": "O dovolenou v délce 3 až 9 dnů je nutné požádat nejméně 14 kalendářních dnů předem (v urgentních případech může přímý nadřízený schválit výjimku). Na zaměstnance na DPP a DPČ se dovolená nad rámec zákona (5. týden) ani sick days nevztahují, ledaže je to výslovně sjednáno v individuální dohodě.",
+    "expected_tool": "search_documents",
+    "page": 3
+  }
+]

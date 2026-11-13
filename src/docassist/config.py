@@ -1,6 +1,3 @@
-"""Jedno místo pro všechna nastavení. Ostatní moduly si odsud berou hodnoty,
-takže když chceš změnit TOP_K nebo model, měníš to jen tady."""
-
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -26,7 +23,7 @@ CHAT_MODEL = "gpt-4o-mini"
 
 # Retrieval a RAG (dny 5 a 6)
 TOP_K = 8
-MIN_SIMILARITY = 0.5
+MIN_SIMILARITY = 0.4
 
 PDF_PATH = DATA_DIR / "smernice_dovolena.pdf"
 
@@ -38,3 +35,5 @@ CACHE_DIR = DATA_DIR / "cache"
 RECURSION_LIMIT = 10
 
 MAX_UPLOAD_MB = 10
+
+JUDGE_MODEL = "gpt-4o"

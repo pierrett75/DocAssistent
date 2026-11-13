@@ -30,11 +30,13 @@ tests/          # Unit and API tests (pytest)
    python -m venv venv
    venv\Scripts\activate
    ```
+   .\venv\Scripts\Activate.ps1
 
 2. **Install dependencies:**
    ```bash
    pip install -e ".[dev]"
    ```
+   python -m pip install -e .
 
 3. **Configure environment variables:**
    Create a `.env` file in the project root:

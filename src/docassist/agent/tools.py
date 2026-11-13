@@ -5,7 +5,7 @@ from openai import OpenAI
 
 from docassist.agent.cache import cached, short_hash
 from docassist.agent.prompts import SUMMARY_PROMPT
-from docassist.config import CHAT_MODEL, TOP_K, PDF_PATH
+from docassist.config import CHAT_MODEL, MIN_SIMILARITY, TOP_K, PDF_PATH
 from docassist.db.vector_store import get_collection, retrieve
 from docassist.extract.company_rule import extract_policy
 from docassist.ingest.pdf_loader import load_pdf
@@ -24,7 +24,10 @@ def search_documents(query: str) -> str:
     že odpověď v dokumentech není. Vrací pasáže s čísly [n] a stranou.
     query: dotaz česky, slovy, jaká mohou být v dokumentu."""
     results = retrieve(get_collection(), query, k=TOP_K)
-    return format_context(results)
+    if not results or results[0]["similarity"] < MIN_SIMILARITY:
+        return "Nic relevantního nenalezeno."      
+    return format_context(results)                
+
 
 
 @tool
