@@ -27,14 +27,15 @@ def reset_collection() -> None:
         pass  # kolekce ještě neexistuje (první spuštění), není co mazat
 
 
-def index_chunks(collection, chunks: list[dict]) -> None:
-    """Uloží chunky do kolekce."""
-    # ← změna: kontrola "Index už existuje" je pryč, rozhoduje build_index.py
+def index_chunks(collection, chunks: list[dict], access: str = "all") -> None:
+    """Uloží chunky do kolekce s úrovní přístupu v metadatech."""
     ids = [f"{c['source']}-{c['chunk_id']}" for c in chunks]
     documents = [c["text"] for c in chunks]
-    metadatas = [{"source": c["source"], "page": c["page"]} for c in chunks]
+    metadatas = [{"source": c["source"], "page": c["page"], "access": access} for c in chunks]
     embeddings = get_embeddings(documents)
-    collection.add(ids=ids, documents=documents, metadatas=metadatas, embeddings=embeddings.tolist())
+ 
+    collection.delete(where={"source": chunks[0]["source"]})
+    collection.upsert(ids=ids, documents=documents, metadatas=metadatas, embeddings=embeddings.tolist())
 
 
 def retrieve(collection, question: str, k: int, where: dict | None = None) -> list[dict]:

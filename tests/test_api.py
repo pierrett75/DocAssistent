@@ -1,3 +1,4 @@
+from os import access
 import uuid
 
 import httpx
@@ -67,43 +68,43 @@ def test_ask_prilis_mnoho_kroku_vrati_422(client, fake_agent):
 PDF_BYTES = b"%PDF-1.4 falesne pdf pro testy"
 
 
-def test_upload_odmitne_docx(client):
-    response = client.post("/upload", files={"file": ("smlouva.docx", b"neco", "application/octet-stream")})
+def test_upload_odmitne_docx(client, monkeypatch):
+    monkeypatch.setattr(main, "index_pdf", lambda collection, path, access="all": 5)
+    response = client.post("/upload", files={"file": ("smlouva.docx", b"neco", "application/octet-stream")}, headers={"X-User-Role": "hr"})
     assert response.status_code == 400
     assert response.json()["error"] == "unsupported_file"
 
 
 def test_upload_ulozi_a_zaindexuje(client, monkeypatch, tmp_path):
     # index_pdf nahradím funkcí, která jen vrátí 5 (jako by vzniklo 5 chunků)
-    monkeypatch.setattr(main, "index_pdf", lambda collection, path: 5)
-    case = client.post("/upload", files={"file": ("smernice.pdf", PDF_BYTES, "application/pdf")})
+    monkeypatch.setattr(main, "index_pdf", lambda collection, path, access="all": 5)
+    case = client.post("/upload", files={"file": ("smernice.pdf", PDF_BYTES, "application/pdf")} ,headers={"X-User-Role": "hr"})
     assert case.status_code == 200
     assert case.json() == {"filename": "smernice.pdf", "chunks": 5}
     assert (tmp_path / "smernice.pdf").read_bytes() == PDF_BYTES
 
 
 def test_upload_pdf_bez_textu_vrati_422_a_smaze_soubor(client, monkeypatch, tmp_path):
-    monkeypatch.setattr(main, "index_pdf", lambda collection, path: 0) 
-    case = client.post("/upload", files={"file": ("sken.pdf", PDF_BYTES, "application/pdf")})
+    monkeypatch.setattr(main, "index_pdf", lambda collection, path, access="all": 0)
+    case = client.post("/upload", files={"file": ("sken.pdf", PDF_BYTES, "application/pdf")} ,headers={"X-User-Role": "hr"})
     assert case.status_code == 422
     assert case.json()["error"] == "empty_document" 
     assert not (tmp_path / "sken.pdf").exists()
 
 
 def test_upload_rozbite_pdf_vrati_400_a_smaze_soubor(client, monkeypatch, tmp_path):
-    def rozbite(collection, path):
+    def rozbite(collection, path, access="all"):
         raise PdfReadError("rozbité")
     monkeypatch.setattr(main, "index_pdf", rozbite)
-    case = client.post("/upload", files={"file": ("rozbite.pdf", PDF_BYTES, "application/pdf")})
+    case = client.post("/upload", files={"file": ("rozbite.pdf", PDF_BYTES, "application/pdf")}, headers={"X-User-Role": "hr"})
     assert case.status_code == 400
     assert case.json()["error"] == "invalid_pdf"
     assert not (tmp_path / "rozbite.pdf").exists()
 
 
 def test_upload_path_traversal(client, monkeypatch, tmp_path):
-
-    monkeypatch.setattr(main, "index_pdf", lambda collection, path: 1)
-    case = client.post("/upload", files={"file": ("../../hack.pdf", PDF_BYTES, "application/pdf")})
+    monkeypatch.setattr(main, "index_pdf", lambda collection, path, access="all": 1)
+    case = client.post("/upload", files={"file": ("../../hack.pdf", PDF_BYTES, "application/pdf")}, headers={"X-User-Role": "hr"})
     assert case.status_code == 200
     assert case.json()["filename"] == "hack.pdf"
     assert (tmp_path / "hack.pdf").exists() 

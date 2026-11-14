@@ -1,5 +1,6 @@
 import json
 
+from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
 from openai import OpenAI
 
@@ -18,15 +19,16 @@ def load_full_text() -> str:
     return "\n\n".join(f"[strana {p['page']}]\n{p['text']}" for p in pages)
 
 @tool
-def search_documents(query: str) -> str:
+def search_documents(query: str, config: RunnableConfig)  -> str:
     """Vyhledá v interních směrnicích pasáže k jednomu pravidlu, postupu nebo podmínce.
     Použij i pro otázku na jedno číslo (např. kolik mám sick days) a i když si myslíš,
     že odpověď v dokumentech není. Vrací pasáže s čísly [n] a stranou.
     query: dotaz česky, slovy, jaká mohou být v dokumentu."""
-    results = retrieve(get_collection(), query, k=TOP_K)
-    if not results or results[0]["similarity"] < MIN_SIMILARITY:
-        return "Nic relevantního nenalezeno."      
-    return format_context(results)                
+    access = config.get("configurable", {}).get("access", ["all"])
+    collection = get_collection()
+    results = retrieve(collection, query, k=TOP_K, where={"access": {"$in": access}})
+    filtered_results = [r for r in results if r["similarity"] >= MIN_SIMILARITY]
+    return format_context(filtered_results)               
 
 
 

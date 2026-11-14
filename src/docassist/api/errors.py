@@ -5,6 +5,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 
+from docassist.guardrails import BLOCKED_MESSAGE
+
 
 # logging místo print: má úroveň (INFO/ERROR), čas a u logger.exception i celý traceback.
 # V Azure (týden 4) se logy sbírají automaticky, print by se ztratil.
@@ -55,6 +57,15 @@ class AgentStepLimitError(DocAssistError):
     error = "too_many_steps"
     message = "Agent narazil na limit kroků, zkuste to zjednodušit."
 
+class ForbiddenError(DocAssistError):
+    status_code = 403
+    error = "forbidden"
+    message = "K tomuto požadavku nemáte oprávnění."
+
+class BlockedError(DocAssistError):
+    status_code = 400
+    error = "blocked_input"
+    message = BLOCKED_MESSAGE 
 
 # ---------------------------------------------------------------------------
 # 2. HANDLERY: výjimka → JSONResponse

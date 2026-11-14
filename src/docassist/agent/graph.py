@@ -1,3 +1,4 @@
+import logging
 from typing import Literal
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, trim_messages
@@ -10,6 +11,12 @@ from pydantic import BaseModel, Field
 from docassist.agent.prompts import ROUTER_PROMPT, SYSTEM_PROMPT
 from docassist.agent.tools import TOOLS
 from docassist.config import CHAT_MODEL, MAX_HISTORY_TOKENS
+
+OFF_TOPIC_ANSWER = ("Pomáhám jen s otázkami k firemním směrnicím, třeba k dovolené nebo sick days. "
+                    "S tímhle vám bohužel neporadím.")
+ATTACK_ANSWER = "Tuhle žádost nemůžu splnit. Můžu ale odpovědět na otázku k firemním směrnicím."
+
+logger = logging.getLogger("docassist.api")
 
 llm = ChatOpenAI(model=CHAT_MODEL, temperature=0)
 llm_free = llm.bind_tools(TOOLS)                                # smí odpovědět textem
@@ -33,10 +40,11 @@ CHITCHAT_ANSWER = ("Ahoj, jsem DocAssist. Odpovídám na otázky o firemních sm
 class AgentState(MessagesState):
     """MessagesState (seznam zpráv) + cesta, kterou vybral router."""
     route: str
-
+    refusal_reason: str 
 
 class RouteDecision(BaseModel):
-    route: Literal["chitchat", "agent"]
+    """Výsledek routeru: kam má jít hrana z routeru."""
+    route: Literal["chitchat", "off_topic", "attack", "agent"]
     reason: str = Field(description="Jedna věta, proč")
 
 
@@ -47,10 +55,13 @@ router_llm = llm.with_structured_output(RouteDecision)
 def router_node(state: AgentState) -> dict:
     """Zvolí, jestli je otázka chitchat (pozdrav, small talk) nebo dotaz na směrnici."""
     decision = router_llm.invoke([SystemMessage(ROUTER_PROMPT), state["messages"][-1]])
-    return {"route": decision.route}
+    if decision.route in ("off_topic", "attack"):
+        logger.warning("router %s: %s", decision.route, decision.reason)
+        return {"route": "refusal", "refusal_reason": decision.route}
+    return {"route": decision.route, "refusal_reason": ""}
+   
 
-
-def pick_route(state: AgentState) -> Literal["chitchat", "agent"]:
+def pick_route(state: AgentState) -> Literal["chitchat", "agent", "refusal"]:
     """Vrátí, kam má jít hrana z routeru: chitchat nebo agent."""
     return state["route"]
 
@@ -58,6 +69,11 @@ def pick_route(state: AgentState) -> Literal["chitchat", "agent"]:
 def chitchat_node(state: AgentState) -> dict:
     """Vrátí odpověď na pozdrav nebo small talk. Nepoužívá nástroje."""
     return {"messages": [AIMessage(CHITCHAT_ANSWER)]}
+
+def refusal_node(state: AgentState) -> dict:
+    """Odmítne otázku mimo téma nebo útok. Žádný nástroj, žádné LLM."""
+    answer = ATTACK_ANSWER if state["refusal_reason"] == "attack" else OFF_TOPIC_ANSWER
+    return {"messages": [AIMessage(answer)]}
 
 
 def agent_node(state: AgentState) -> dict:
@@ -97,12 +113,14 @@ def build_agent(checkpointer=None):
     graph.add_node("chitchat", chitchat_node)
     graph.add_node("agent", agent_node)
     graph.add_node("tools", ToolNode(TOOLS))
+    graph.add_node("refusal", refusal_node) 
 
     graph.add_edge(START, "router")
     graph.add_conditional_edges("router", pick_route)
     graph.add_edge("chitchat", END)
     graph.add_conditional_edges("agent", tools_condition)
-    graph.add_edge("tools", "agent")  
+    graph.add_edge("tools", "agent")
+    graph.add_edge("refusal", END)  
 
     return graph.compile(checkpointer=checkpointer)
 

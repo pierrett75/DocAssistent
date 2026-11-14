@@ -51,4 +51,5 @@ def client(fake_agent, monkeypatch, tmp_path) -> TestClient:
     monkeypatch.setattr(main, "agent", fake_agent)
     monkeypatch.setattr(main, "DATA_DIR", tmp_path)
     monkeypatch.setattr(main, "get_collection", lambda: None)
+    monkeypatch.setattr(main, "index_pdf", lambda collection, path: 5)  # index_pdf jen vrátí 5 (jako by vzniklo 5 chunků)  
     return TestClient(main.app)
