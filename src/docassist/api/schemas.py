@@ -37,6 +37,7 @@ class AskResponse(BaseModel):
     answer: str
     thread_id: UUID          
     tools_used: list[str]
+    trace_id: str | None = None
 
 
 class UploadResponse(BaseModel):
@@ -48,3 +49,8 @@ class ErrorResponse(BaseModel):
     error: str = Field(description="Strojový kód chyby, např. 'unsupported_file'")
     message: str = Field(description="Hláška pro uživatele, česky")
     details: list[dict] | None = None
+
+class FeedbackRequest(BaseModel):
+    trace_id: str = Field(min_length=1)
+    helpful: bool
+    comment: str | None = Field(default=None, max_length=500)

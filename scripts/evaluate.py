@@ -1,4 +1,3 @@
-
 import json
 import re
 import statistics
@@ -14,7 +13,11 @@ from langgraph.errors import GraphRecursionError
 from docassist.agent.graph import build_agent
 from docassist.config import PROJECT_ROOT, RECURSION_LIMIT
 from docassist.eval.judge import judge
+from langfuse import get_client
 
+from docassist.observability import last_trace_id, tracing_config, tracing_enabled
+
+RUN_NAME = f"{datetime.now():%Y-%m-%d_%H%M}" 
 EVAL_DIR = PROJECT_ROOT / "eval"
 PASS_THRESHOLD = 4          # případ projde, když jsou všechna tři skóre >= 4 a deterministické kontroly OK
 
@@ -23,9 +26,16 @@ PASS_THRESHOLD = 4          # případ projde, když jsou všechna tři skóre >
 # 1. Spuštění agenta na jedné otázce
 # ---------------------------------------------------------------------------
 
-def run_case(app, question: str) -> dict:
+def run_case(app, question: str, case_id: str) -> dict:
     """Zeptá se agenta (nové vlákno = nový uživatel) a vrátí odpověď, kontext a nástroje."""
-    config = {"configurable": {"thread_id": str(uuid.uuid4())}, "recursion_limit": RECURSION_LIMIT}
+    thread_id = str(uuid.uuid4())
+    
+    config = {"configurable": {"thread_id": thread_id}, 
+              "recursion_limit": RECURSION_LIMIT,
+              **tracing_config(session_id=f"eval-{RUN_NAME}", user_id="eval", tags=["eval", RUN_NAME, case_id])
+              }
+
+    
     start = time.perf_counter()
     result = app.invoke({"messages": [HumanMessage(question)]}, config)
     seconds = time.perf_counter() - start
@@ -34,8 +44,25 @@ def run_case(app, question: str) -> dict:
     answer = messages[-1].content
     tools = sorted(call["name"] for m in messages if isinstance(m, AIMessage) for call in m.tool_calls)
     context = "\n\n".join(m.content for m in messages if isinstance(m, ToolMessage))
-    return {"answer": answer, "tools": tools, "context": context, "seconds": round(seconds, 1)}
+    return {"answer": answer, "tools": tools, "context": context, "seconds": round(seconds, 1), "trace_id": last_trace_id(config)}
 
+
+def send_scores(row: dict) -> None:
+    """Pošle skóre soudce a deterministické kontroly k trace v Langfuse."""
+    if not tracing_enabled() or not row.get("trace_id"):
+        return
+    langfuse = get_client()
+
+    for metric in ("relevance", "groundedness", "correctness"):
+        langfuse.create_score(trace_id=row["trace_id"], name=metric, value=row[metric],
+                              comment=row["reasoning"])
+
+    langfuse.create_score(
+        trace_id=row["trace_id"],
+        name="passed",                          # název skóre v Langfuse (volíš ty)
+        value=1 if row["passed"] else 0,        # True → 1, False → 0
+        data_type="BOOLEAN",
+    )
 
 # ---------------------------------------------------------------------------
 # 2. Deterministické kontroly
@@ -98,7 +125,7 @@ if __name__ == "__main__":
 
     for case in cases:
         try:
-            run = run_case(app, case["question"])
+            run = run_case(app, case["question"], case_id=case["id"])
             run["error"] = False
         except GraphRecursionError:
             run = {"answer": "(překročen limit kroků)", "tools": [], "context": "",
@@ -113,15 +140,13 @@ if __name__ == "__main__":
             scores = judge(case["question"], run["context"], case["reference"], run["answer"]).model_dump()
 
         row = {**case, **run, **checks, **scores}
-        row["passed"] = (all(row[m] >= PASS_THRESHOLD for m in ("relevance", "groundedness", "correctness"))
-                         and row["tool_ok"] and row["citation_ok"])
-        rows.append(row)
         
         row["passed"] = (row["relevance"] >= PASS_THRESHOLD and
                          row["groundedness"] >= PASS_THRESHOLD and
                          row["correctness"] >= PASS_THRESHOLD and
                          row["tool_ok"] and
                          row["citation_ok"])
+        send_scores(row)
         rows.append(row)
 
         mark = "PASS" if row["passed"] else "FAIL"
@@ -141,3 +166,5 @@ if __name__ == "__main__":
     out_file.write_text(json.dumps({"summary": summary, "rows": rows}, ensure_ascii=False, indent=2),
                         encoding="utf-8")
     print(f"\nUloženo: {out_file}")
+    if tracing_enabled():
+        get_client().flush()

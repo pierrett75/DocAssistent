@@ -29,8 +29,9 @@ llm_no_tools = llm.bind_tools(TOOLS, tool_choice="none")   # nástroje zná, ale
 MAX_TOOL_ROUNDS = 3
 FINAL_ANSWER_PROMPT = (
     "Nástroje už volat nemůžeš. Odpověz teď na PŮVODNÍ otázku uživatele jen podle výsledků nástrojů výše. "
-    "Nepiš žádnou novou otázku ani dotaz. Když ve výsledcích odpověď není, napiš přesně: "
+    "Nepiš žádnou novou otázku ani dotaz. Když ve výsledcích není odpověď na žádnou část otázky, napiš přesně: "
     "\"Odpověď v dokumentech není.\""
+    "Na části otázky, které výsledky pokrývají, odpověz s citací [n]; u ostatních napiš, že v dokumentech nejsou. "
 )
 
 CHITCHAT_ANSWER = ("Ahoj, jsem DocAssist. Odpovídám na otázky o firemních směrnicích, "
@@ -77,17 +78,21 @@ def refusal_node(state: AgentState) -> dict:
 
 
 def agent_node(state: AgentState) -> dict:
-    history = trim_messages(
-        state["messages"],
+    messages = state["messages"]
+    last_human = max(i for i, m in enumerate(messages) if isinstance(m, HumanMessage))
+
+    older = messages[:last_human]           # předchozí otázky a odpovědi
+    current = messages[last_human:]         # aktuální otázka + výsledky nástrojů k ní
+
+    older_trimmed = trim_messages(          # ořezává se jen minulost
+        older,
         strategy="last",
         token_counter=llm,
         max_tokens=MAX_HISTORY_TOKENS,
         start_on="human",
-    )
+    ) 
+    history = older_trimmed + current
 
-    # Kolikrát už agent k AKTUÁLNÍ otázce volal nástroje (od poslední HumanMessage).
-    messages = state["messages"]
-    last_human = max(i for i, m in enumerate(messages) if isinstance(m, HumanMessage))
     tool_rounds = sum(1 for m in messages[last_human:] if isinstance(m, AIMessage) and m.tool_calls)
 
     if isinstance(messages[-1], HumanMessage):

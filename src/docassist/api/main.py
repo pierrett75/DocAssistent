@@ -1,21 +1,16 @@
 """
-Den 16, soubor 3/3: main.py s modely ze schemas.py a chybami z errors.py
-Kam: src/docassist/api/main.py   (UPRAV svůj soubor ze dne 15, tohle je cílový stav s TODO)
 
-Do config.py přidej:
-    MAX_UPLOAD_MB = 10
-
-Spuštění beze změny:
     uvicorn docassist.api.main:app --reload    →  http://127.0.0.1:8000/docs
 """
 
 import logging
+from typing import Literal
 import uuid
+import time
 from pathlib import Path
 
-from fastapi import FastAPI, Form, Header, UploadFile
+from fastapi import FastAPI, Form, Header, Request, UploadFile
 from langchain_core.messages import AIMessage, HumanMessage
-from langchain_protocol import Literal
 from langgraph.errors import GraphRecursionError
 from pypdf.errors import PdfReadError
 
@@ -31,11 +26,13 @@ from docassist.api.errors import (
     UnsupportedFileError,
     register_error_handlers,
 )
-from docassist.api.schemas import AskRequest, AskResponse, ErrorResponse, UploadResponse
+from docassist.api.schemas import AskRequest, AskResponse, ErrorResponse, FeedbackRequest, UploadResponse
 from docassist.config import DATA_DIR, MAX_UPLOAD_MB, RECURSION_LIMIT
 from docassist.db.vector_store import get_collection
 from docassist.guardrails import DEFAULT_ROLE, allowed_access, check_input
 from docassist.ingest.pipeline import index_pdf
+from docassist.observability import last_trace_id, tracing_config, tracing_enabled
+from langfuse import get_client
 
 # Základní nastavení logů: úroveň INFO a výš, formát s časem.
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -49,14 +46,22 @@ register_error_handlers(app)
 
 agent = default_agent()
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Každý požadavek: request_id, metoda, cesta, status, doba v ms."""
+    request_id = request.headers.get("X-Request-ID", str(uuid.uuid4())[:8])
+    start = time.perf_counter()
+    response = await call_next(request)
+    ms = (time.perf_counter() - start) * 1000
+    logger.info("request_id=%s %s %s %s %.0fms", request_id, request.method, request.url.path, response.status_code, ms)
+    response.headers["X-Request-ID"] = request_id
+    return response
+
 
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
 
-
-# `responses=` jen DOKUMENTUJE, jaké chyby endpoint může vrátit. Uvidíš je v /docs pod endpointem.
-# Na chování to nemá vliv (to řeší handlery), ale frontend vývojář hned ví, s čím počítat.
 @app.post(
     "/ask",
     response_model=AskResponse,
@@ -67,7 +72,6 @@ def health() -> dict:
         503: {"model": ErrorResponse, "description": "Jazykový model je dočasně nedostupný"},
     },
 )
-
 def ask(request: AskRequest, x_user_role: str = Header(default=DEFAULT_ROLE)) -> AskResponse:
     """Zeptá se agenta na otázku a vrátí odpověď, thread_id a nástroje, které použil."""
 
@@ -80,7 +84,15 @@ def ask(request: AskRequest, x_user_role: str = Header(default=DEFAULT_ROLE)) ->
         raise BlockedError()
 
     thread_id = request.thread_id or uuid.uuid4()
-    config = {"configurable": {"thread_id": str(thread_id), "access": access}, "recursion_limit": RECURSION_LIMIT}
+    
+    config = {
+              "configurable": {"thread_id": str(thread_id), "access": access}, 
+              "recursion_limit": RECURSION_LIMIT,
+              }
+    
+    if tracing_enabled():
+        config.update(tracing_config(str(thread_id), x_user_role, ["api"]))
+    
     try:
         result = agent.invoke({"messages": [HumanMessage(request.question)]}, config)
     except GraphRecursionError:
@@ -93,7 +105,7 @@ def ask(request: AskRequest, x_user_role: str = Header(default=DEFAULT_ROLE)) ->
         for m in messages[last_human:] if isinstance(m, AIMessage)
         for call in m.tool_calls
     }
-    return AskResponse(answer=messages[-1].content, thread_id=thread_id, tools_used=sorted(tools_used))
+    return AskResponse(answer=messages[-1].content, thread_id=thread_id, tools_used=sorted(tools_used), trace_id=(last_trace_id(config)))
 
 
 @app.post(
@@ -133,3 +145,13 @@ def upload(
         path.unlink()
         raise EmptyDocumentError()
     return UploadResponse(filename=filename, chunks=chunks)
+
+@app.post("/feedback", status_code=204)
+def feedback(request: FeedbackRequest) -> None:
+    """Uloží hodnocení odpovědi od uživatele jako skóre v Langfuse."""
+
+    if not tracing_enabled():    
+        return 
+    get_client().create_score(trace_id=request.trace_id, name="user_feedback", 
+                              value=1 if request.helpful else 0, data_type="BOOLEAN", comment=request.comment)
+    

@@ -24,6 +24,7 @@ dependencies = [
     "fastapi",
     "uvicorn",
     "python-multipart",
+    "langfuse",
 ]
 
 [project.optional-dependencies]
