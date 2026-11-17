@@ -71,3 +71,13 @@ Interactive Swagger documentation is available at `http://127.0.0.1:8000/docs`.
 ```bash
 pytest
 ```
+
+## Docker
+### Build
+cd C:\Users\pierr\project\DocAssistent 
+- `docker build -t docassist:0.1 .`
+
+### Run¨
+- `docker run --rm -p 8000:8000 --env-file .env -v ${PWD}/data:/app/data --name docassist docassist:0.1`
+
+
