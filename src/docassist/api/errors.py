@@ -11,7 +11,7 @@ from docassist.guardrails import BLOCKED_MESSAGE
 # logging místo print: má úroveň (INFO/ERROR), čas a u logger.exception i celý traceback.
 # V Azure (týden 4) se logy sbírají automaticky, print by se ztratil.
 logger = logging.getLogger("docassist.api")
-
+DEFAULT_RETRY_AFTER = 10 
 
 # ---------------------------------------------------------------------------
 # 1. VÝJIMKY
@@ -85,11 +85,23 @@ async def docassist_error_handler(request: Request, exc: DocAssistError) -> JSON
     logger.warning("%s: %s", exc.error, exc.message)
     return _error_response(exc.status_code, exc.error, exc.message)
 
+async def rate_limit_handler(request: Request, exc: openai.RateLimitError) -> JSONResponse:
+    """429 z LLM → 429 pro klienta i s hlavičkou Retry-After."""
+    # Hlavičky odpovědi z Azure jsou v exc.response.headers (httpx.Headers, klíče bez ohledu na velikost písmen).
+    try:
+        retry_after = int(exc.response.headers.get("retry-after"))
+    except (TypeError, ValueError):   # TypeError = hlavička chybí (int(None)), ValueError = není to číslo
+        retry_after = DEFAULT_RETRY_AFTER
 
+    logger.warning("Rate limit LLM, retry za %s s", retry_after)
+
+    response = _error_response(429, "rate_limited", f"Příliš mnoho požadavků, zkuste to za {retry_after} s.")
+    response.headers["Retry-After"] = str(retry_after)
+    return response
+    
 
 LLM_TEMPORARY_ERRORS = (
     openai.APIConnectionError,      # zahrnuje i APITimeoutError
-    openai.RateLimitError,
     openai.InternalServerError,
 )
 
@@ -110,6 +122,7 @@ def register_error_handlers(app: FastAPI) -> None:
     """Zavolá se jednou v main.py hned po app = FastAPI(...)."""
     app.add_exception_handler(DocAssistError, docassist_error_handler)
     app.add_exception_handler(RequestValidationError, validation_error_handler)
+    app.add_exception_handler(openai.RateLimitError, rate_limit_handler)
     for exc_class in LLM_TEMPORARY_ERRORS:
         app.add_exception_handler(exc_class, llm_error_handler)
     app.add_exception_handler(Exception, unhandled_error_handler)   

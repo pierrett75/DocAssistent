@@ -5,6 +5,9 @@ from pydantic import BaseModel, Field
 
 from docassist.config import JUDGE_MODEL
 
+# Soudce záměrně NEjde přes get_openai_client(): zůstává na OpenAI (gpt-4o) i při LLM_PROVIDER=azure.
+#  - na Azure nemám kvótu pro silnější model a soudce má být silnější než hodnocený model
+#  - Azure Prompt Shields označí prompt soudce (instrukce + cizí text v user zprávě) jako jailbreak → 400 content_filter
 client = OpenAI()
 
 Score = Literal[1, 2, 3, 4, 5]     # Literal místo int + ge/le: OpenAI structured outputs to umí jako výčet

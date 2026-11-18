@@ -140,3 +140,9 @@ def test_secret_value_never_logged(clean_env, monkeypatch, caplog):
         load_secrets()
 
     assert "sk-tajne-123" not in caplog.text
+
+def test_azure_does_not_require_openai_key(clean_env, monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "azure")
+    use_vault(monkeypatch, {})
+
+    load_secrets()  # nesmí vyhodit MissingSecretError

@@ -1,6 +1,10 @@
 import os
 
+# Testy nesmí záviset na tvém .env ani sahat na Azure. Nastavujeme PŘED importem aplikace:
+# load_dotenv() v config.py hodnoty, které už v prostředí jsou, nepřepisuje.
 os.environ.setdefault("OPENAI_API_KEY", "sk-test-falesny-klic")
+os.environ["KEY_VAULT_URL"] = ""      # prázdné = Key Vault se nepoužije (_get_vault_client vrátí None)
+os.environ["LLM_PROVIDER"] = "openai"  # testy běží proti výchozímu providerovi
 
 import pytest
 from fastapi.testclient import TestClient

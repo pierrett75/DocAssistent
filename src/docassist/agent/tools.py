@@ -10,9 +10,10 @@ from docassist.config import CHAT_MODEL, MIN_SIMILARITY, TOP_K, PDF_PATH
 from docassist.db.vector_store import get_collection, retrieve
 from docassist.extract.company_rule import extract_policy
 from docassist.ingest.pdf_loader import load_pdf
+from docassist.llm import chat_model_name, get_openai_client
 from docassist.rag.pipeline import format_context
 
-client = OpenAI()
+client = get_openai_client()
 
 def load_full_text() -> str:
     pages = load_pdf(PDF_PATH)
@@ -55,7 +56,7 @@ def summarize_document(topic: str) -> str:
 
     def compute() -> str:
             response = client.chat.completions.create(
-                model=CHAT_MODEL,
+                model=chat_model_name(),
                 temperature=0,
                 messages=[
                     {"role": "system", "content": SUMMARY_PROMPT},

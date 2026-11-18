@@ -72,17 +72,24 @@ def get_secret(env_name: str) -> str | None:
     except ResourceNotFoundError:
         return None
 
+def _secret_lists() -> tuple[list[str], list[str]]:
+    """(povinné, volitelné) podle LLM_PROVIDER. Čte se až při volání, ne při importu."""
+    if os.getenv("LLM_PROVIDER", "openai") == "azure":
+        # Chat a embeddingy jdou přes Entra ID (bez klíče), OPENAI_API_KEY potřebuje jen soudce v evalu.
+        return [], ["OPENAI_API_KEY"] + OPTIONAL_SECRETS
+    return REQUIRED_SECRETS, OPTIONAL_SECRETS
 
 # ---------------------------------------------------------------------------
 # 4. Načtení všeho při startu
 # ---------------------------------------------------------------------------
 def load_secrets() -> None:
     """Zavolej jednou při startu (v config.py hned po load_dotenv)."""
-    for name in REQUIRED_SECRETS + OPTIONAL_SECRETS:
+    required, optional = _secret_lists()
+    for name in required + optional:
         value = get_secret(name)
         
         if not value:
-            if name in REQUIRED_SECRETS:
+            if name in required:
                 raise MissingSecretError(f"Chybí {name}: není v prostředí ani v Key Vaultu.")
             logger.warning("Volitelný klíč %s chybí, pokračuju bez něj.", name)
             continue
