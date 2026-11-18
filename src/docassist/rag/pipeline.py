@@ -4,9 +4,10 @@ from openai import OpenAI
 
 from docassist.config import CHAT_MODEL, MIN_SIMILARITY, TOP_K
 from docassist.db.vector_store import get_collection, retrieve
+from docassist.llm import chat_model_name, get_openai_client
 from docassist.rag.prompts import FALLBACK, SYSTEM_PROMPT
 
-client = OpenAI()
+client = get_openai_client()
 
 
 def format_context(results: list[dict]) -> str:
@@ -41,7 +42,7 @@ def answer(question: str) -> dict:
     context = format_context(results)
     messages = build_messages(question, context)
     response = client.chat.completions.create(
-        model=CHAT_MODEL, messages=messages, temperature=0
+        model=chat_model_name(), messages=messages, temperature=0
     )
     answer_text = response.choices[0].message.content
 

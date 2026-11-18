@@ -3,8 +3,9 @@ from pydantic import BaseModel, Field, model_validator
 import math 
 
 from docassist.config import CHAT_MODEL
+from docassist.llm import get_openai_client
 
-client = OpenAI()
+client = get_openai_client()
 
 
 EXTRACTION_PROMPT = """Jsi asistent, který z firemních předpisů vytahuje přesná data.

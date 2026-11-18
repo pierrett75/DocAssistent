@@ -25,6 +25,8 @@ dependencies = [
     "uvicorn",
     "python-multipart",
     "langfuse",
+    "azure-identity",
+    "azure-keyvault-secrets",
 ]
 
 [project.optional-dependencies]

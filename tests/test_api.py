@@ -52,6 +52,27 @@ def test_ask_vypadek_openai_vrati_503(client, fake_agent):
     assert response.json()["error"] == "llm_unavailable"
 
 
+def _rate_limit_error(headers: dict) -> openai.RateLimitError:
+    # RateLimitError chce celou HTTP odpověď (z ní handler čte hlavičku retry-after).
+    response = httpx.Response(429, headers=headers, request=httpx.Request("POST", "https://api.openai.com/v1"))
+    return openai.RateLimitError("rate limited", response=response, body=None)
+
+
+def test_ask_rate_limit_vrati_429_s_retry_after(client, fake_agent):
+    fake_agent.error = _rate_limit_error({"retry-after": "7"})
+    response = client.post("/ask", json={"question": "Kolik mám sick days?"})
+    assert response.status_code == 429
+    assert response.json()["error"] == "rate_limited"
+    assert response.headers["Retry-After"] == "7"
+
+
+def test_ask_rate_limit_bez_hlavicky_pouzije_vychozi(client, fake_agent):
+    fake_agent.error = _rate_limit_error({})
+    response = client.post("/ask", json={"question": "Kolik mám sick days?"})
+    assert response.status_code == 429
+    assert response.headers["Retry-After"] == "10"
+
+
 def test_ask_prilis_mnoho_kroku_vrati_422(client, fake_agent):
     fake_agent.error = GraphRecursionError("limit")
     response = client.post("/ask", json={"question": "Kolik mám sick days?"})

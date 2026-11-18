@@ -2,7 +2,6 @@ import logging
 from typing import Literal
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, trim_messages
-from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -11,6 +10,7 @@ from pydantic import BaseModel, Field
 from docassist.agent.prompts import ROUTER_PROMPT, SYSTEM_PROMPT
 from docassist.agent.tools import TOOLS
 from docassist.config import CHAT_MODEL, MAX_HISTORY_TOKENS
+from docassist.llm import get_chat_llm
 
 OFF_TOPIC_ANSWER = ("Pomáhám jen s otázkami k firemním směrnicím, třeba k dovolené nebo sick days. "
                     "S tímhle vám bohužel neporadím.")
@@ -18,7 +18,7 @@ ATTACK_ANSWER = "Tuhle žádost nemůžu splnit. Můžu ale odpovědět na otáz
 
 logger = logging.getLogger("docassist.api")
 
-llm = ChatOpenAI(model=CHAT_MODEL, temperature=0)
+llm = get_chat_llm(temperature=0)
 llm_free = llm.bind_tools(TOOLS)                                # smí odpovědět textem
 llm_must_use_tool = llm.bind_tools(
     TOOLS, tool_choice={"type": "function", "function": {"name": "search_documents"}}

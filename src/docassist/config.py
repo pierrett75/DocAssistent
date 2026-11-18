@@ -2,11 +2,14 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from docassist.secret_store import load_secrets
+
 # Cesta ke kořeni projektu, spočítaná z umístění tohoto souboru:
 #   .../DocAssistent/src/docassist/config.py
 #   parents[0] = docassist, parents[1] = src, parents[2] = DocAssistent
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(PROJECT_ROOT / ".env")
+load_secrets()
 
 # Cesty
 DATA_DIR = PROJECT_ROOT / "data"
