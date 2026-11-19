@@ -1,0 +1,70 @@
+# Den 25: CD = po zelených testech na main postav image a nasaď ho
+# Tok: push do main → job "test" → job "deploy" (jen když test prošel)
+# Přihlášení do Azure: OIDC (federovaná identita id-github-deploy), žádné heslo.
+ 
+name: Deploy
+ 
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:          # tlačítko "Run workflow" pro ruční spuštění
+ 
+# OIDC: workflow si smí vyžádat ID token od GitHubu (bez toho azure/login s OIDC nefunguje)
+permissions:
+  id-token: write
+  contents: read
+ 
+env:
+  RG: rg-docassist
+  ACR: acrdocassistpierrett
+  APP: docassist
+ 
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+ 
+      - name: Instalace závislostí
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+ 
+      - name: Pytest
+        run: python -m pytest -v
+ 
+  deploy:
+    needs: test                 # běží až po úspěšném jobu test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+ 
+      - name: Přihlášení do Azure (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+ 
+      - name: Build a push image do ACR
+        # Tag = SHA commitu: každá verze má jednoznačné jméno a jde se vrátit.
+        # Trial nepovoluje ACR Tasks (az acr build) → build na runneru (amd64) + push.
+        run: |
+          az acr login -n $ACR
+          docker build -t $ACR.azurecr.io/docassist:${{ github.sha }} .
+          docker push $ACR.azurecr.io/docassist:${{ github.sha }}
+ 
+      - name: Nasazení nové verze
+        run: |
+          az containerapp update -n $APP -g $RG \
+            --image $ACR.azurecr.io/docassist:${{ github.sha }}
+ 
+      - name: Smoke test
+        # Po nasazení zkontroluj, že aplikace žije. Když ne, workflow zčervená.
+        run: |
+          FQDN=$(az containerapp show -n $APP -g $RG --query properties.configuration.ingress.fqdn -o tsv)
+          curl --fail --retry 5 --retry-delay 10 --retry-all-errors https://$FQDN/health
