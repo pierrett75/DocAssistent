@@ -81,3 +81,9 @@ cd C:\Users\pierr\project\DocAssistent
 - `docker run --rm -p 8000:8000 --env-file .env -v ${PWD}/data:/app/data --name docassist docassist:0.1`
 
 
+### Costs
+reálně naměřeno: ~$0,07/den (grant zdarma, první dny)
+plný provoz: ~$22/měsíc idle (1 vCPU, 2 GiB, min 1) + ACR ~$5. S 0,5 vCPU / 1 GiB polovina, s min-replicas 0 téměř nula.
+
+
+
