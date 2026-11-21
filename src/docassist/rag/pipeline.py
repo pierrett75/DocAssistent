@@ -1,8 +1,6 @@
-"""Celý RAG: retrieval → kontext → LLM → odpověď s citací (den 6)."""
+"""Celý RAG: retrieval → kontext → LLM → odpověď s citací."""
 
-from openai import OpenAI
-
-from docassist.config import CHAT_MODEL, MIN_SIMILARITY, TOP_K
+from docassist.config import MIN_SIMILARITY, TOP_K
 from docassist.db.vector_store import get_collection, retrieve
 from docassist.llm import chat_model_name, get_openai_client
 from docassist.rag.prompts import FALLBACK, SYSTEM_PROMPT

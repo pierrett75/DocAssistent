@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir -e ".[dev]"
 COPY scripts ./scripts
 COPY tests ./tests
 
-# 4. Bezpečnost (B2): běží jako běžný uživatel, ne root.
+# 4. Bezpečnost: běží jako běžný uživatel, ne root.
 #    /app/data v image zatím není (data připojujeme přes -v), proto ji nejdřív vytvořím.
 #    chown syntaxe: chown -R <uživatel>:<skupina> <cesta>
 RUN useradd --create-home appuser \
@@ -31,7 +31,7 @@ USER appuser
 # 5. Síť a spuštění
 EXPOSE 8000
 
-# B3: Docker sám volá /health
+# Docker sám volá /health
 HEALTHCHECK CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
 CMD ["python", "-m", "uvicorn", "docassist.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

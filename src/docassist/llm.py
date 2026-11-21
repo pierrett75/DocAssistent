@@ -68,17 +68,3 @@ def get_chat_llm(temperature: float = 0):
     from langchain_openai import ChatOpenAI
 
     return ChatOpenAI(model=CHAT_MODEL, temperature=temperature)
-
-
-# ---------------------------------------------------------------------------
-# Úkol pro ostatní moduly (uprav je sama):
-#   client = OpenAI()               →  client = get_openai_client()
-#   model=CHAT_MODEL                →  model=chat_model_name()
-#   model=EMBEDDING_MODEL           →  model=embedding_model_name()
-#   ChatOpenAI(model=..., ...)      →  get_chat_llm()
-# A JUDGE_MODEL (gpt-4o)? Buď druhý deployment "judge", nebo nech soudce na OpenAI.
-# Rozhodni a zdůvodni v poznámkách (nápověda: soudce má být silnější model než hodnocený).
-#
-# Pozor na secret_store: OPENAI_API_KEY je teď POVINNÝ. S LLM_PROVIDER=azure ho nepotřebuješ.
-# Jak upravíš REQUIRED_SECRETS, aby to platilo? (Testy z dne 23 ti řeknou, jestli jsi nic nerozbila.)
-# ---------------------------------------------------------------------------

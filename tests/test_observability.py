@@ -1,4 +1,4 @@
-"""Testy tracingu (víkend týdne 3). Kód k testům je tvoje práce: TODO 1–7 v lekce/vikend_tracing/.
+"""Testy tracingu (Langfuse) a request ID.
 
 Spuštění: python -m pytest -v -k "tracing or request_id"
 """

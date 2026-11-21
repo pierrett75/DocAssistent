@@ -1,4 +1,4 @@
-# Den 25: CD = po zelených testech na main postav image a nasaď ho
+# CD: po zelených testech na main postaví image a nasadí ho
 # Tok: push do main → job "test" → job "deploy" (jen když test prošel)
 # Přihlášení do Azure: OIDC (federovaná identita id-github-deploy), žádné heslo.
  

@@ -43,13 +43,6 @@ def tools_used(messages: list) -> set[str]:
 def check(case: dict, answer: str, used: set[str]) -> list[str]:
     """Vrátí seznam problémů. Prázdný seznam = PASS."""
     problems = []
-    # TODO 5:
-    #   1) Chybí nějaký očekávaný nástroj?
-    #        missing = case["tools"] - used          ← rozdíl množin: co je v prvním a není v druhém
-    #        když missing není prázdné: problems.append(f"chybí nástroj {missing}")
-    #   2) U pozdravu (case["tools"] je prázdné) se nesmí volat žádný nástroj:
-    #        když not case["tools"] and used: problems.append(f"zbytečně volal {used}")
-    #   3) Pro každé slovo v case["contains"]: když není v answer, problems.append(f"v odpovědi chybí '{slovo}'")
     missing = case["tools"] - used
     if missing:
         problems.append(f"chybí nástroj {missing}")

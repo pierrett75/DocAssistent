@@ -9,7 +9,7 @@ from docassist.config import PROJECT_ROOT, RECURSION_LIMIT
  
 N_QUESTIONS = 10
  
-# USD za 1 milion tokenů (ověř ceník, viz NAVOD A2)
+# USD za 1 milion tokenů (ceník Azure OpenAI, gpt-4.1-mini GlobalStandard)
 PRICE_INPUT = 0.40
 PRICE_CACHED_INPUT = 0.10
 PRICE_OUTPUT = 1.60
