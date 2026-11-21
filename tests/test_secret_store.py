@@ -1,8 +1,7 @@
 """
-Den 23, soubor 2/3: testy pro secret_store
-Kam: tests/test_secret_store.py
+Testy pro secret_store.
 
-Žádné volání Azure: Key Vault nahradíme falešným klientem (stejně jako FakeAgent v den 17).
+Žádné volání Azure: Key Vault nahradíme falešným klientem (FakeVault).
 Spuštění: python -m pytest tests/test_secret_store.py -v
 """
 

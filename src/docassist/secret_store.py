@@ -45,7 +45,7 @@ def _get_vault_client():
     from azure.keyvault.secrets import SecretClient
 
     # DefaultAzureCredential zkouší identity v pořadí, mimo jiné:
-    #   proměnné prostředí (service principal) → MANAGED IDENTITY (v Azure) → přihlášení z `az login` (u tebe)
+    #   proměnné prostředí (service principal) → MANAGED IDENTITY (v Azure) → přihlášení z `az login` (lokálně)
     # Stejný kód tedy funguje lokálně i v Container Apps, mění se jen KDO se přihlašuje.
     credential = DefaultAzureCredential()
     _client = SecretClient(vault_url=vault_url, credential=credential)

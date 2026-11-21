@@ -1,5 +1,5 @@
 """
-Den 19, ÚKOL 3: Skript pro vytažení traces za posledních 7 dní a výpis ceny podle tagů (tenant, feature)
+Vytáhne traces z Langfuse za posledních 7 dní a vypíše cenu podle tagů (tenant, feature).
 Spuštění:
     python scripts/cost_report.py
 """

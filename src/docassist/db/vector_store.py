@@ -1,4 +1,4 @@
-"""Uložení chunků do Chroma a vyhledávání (den 5)."""
+"""Uložení chunků do Chroma a vyhledávání."""
 
 import chromadb
 

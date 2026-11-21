@@ -1,7 +1,5 @@
 """
-Den 19, soubor 4/4: testy guardrailů
-Kam: tests/test_guardrails.py          (nový soubor, část A)
-     tests/test_api.py                 (přidej testy z části B)
+Testy guardrailů.
 Spuštění: python -m pytest -v -k "guard or role or blocked"
 
 Guardrail je čistý Python → testuje se bez mocku, zdarma, v CI. Testuj OBĚ strany:

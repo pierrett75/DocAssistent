@@ -1,4 +1,4 @@
-"""Prompty odděleně od kódu: snadno se porovnávají a verzují (den 2 a 6)."""
+"""Prompty odděleně od kódu: snadno se porovnávají a verzují."""
 
 FALLBACK = "V dostupných dokumentech jsem odpověď nenašla."
 

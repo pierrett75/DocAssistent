@@ -9,7 +9,7 @@ from docassist.guardrails import BLOCKED_MESSAGE
 
 
 # logging místo print: má úroveň (INFO/ERROR), čas a u logger.exception i celý traceback.
-# V Azure (týden 4) se logy sbírají automaticky, print by se ztratil.
+# V Azure se logy sbírají automaticky, print by se ztratil.
 logger = logging.getLogger("docassist.api")
 DEFAULT_RETRY_AFTER = 10 
 

@@ -16,15 +16,15 @@ DATA_DIR = PROJECT_ROOT / "data"
 CHROMA_DIR = DATA_DIR / "chroma_db"
 COLLECTION_NAME = "docassist"
 
-# Chunking (den 4)
+# Chunking
 CHUNK_SIZE = 800
 CHUNK_OVERLAP = 150
 
-# Modely (dny 3 a 6)
+# Modely
 EMBEDDING_MODEL = "text-embedding-3-small"
 CHAT_MODEL = "gpt-4o-mini"
 
-# Retrieval a RAG (dny 5 a 6)
+# Retrieval a RAG
 TOP_K = 8
 MIN_SIMILARITY = 0.4
 
